@@ -2,6 +2,7 @@ package com.hanwhalife.config;
 
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,12 +23,12 @@ public class JwtTokenUtil implements Serializable {
 
 	public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
 
-	@Value("${jwt.secret}")
-	private String secret;
+	@Value("${jwt.secretKey}")
+	private String secretKey;
 
 	//retrieve username from jwt token
 	public String getUsernameFromToken(String token) {
-		return getClaimFromToken(token, Claims::getSubject);
+		return getClaimFromToken(token, Claims::getAudience);	// getSubject
 	}
 
 	//retrieve expiration date from jwt token
@@ -41,7 +42,7 @@ public class JwtTokenUtil implements Serializable {
 	}
     //for retrieveing any information from token we will need the secret key
 	private Claims getAllClaimsFromToken(String token) {
-		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+		return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
 	}
 
 	//check if the token has expired
@@ -53,8 +54,11 @@ public class JwtTokenUtil implements Serializable {
 	//generate token for user
 	public String generateToken(UserDetails userDetails) {
 		Map<String, Object> claims = new HashMap<>();
+		claims.put("userId",userDetails.getUsername());
+		claims.put("userName","홍길동");
 		claims.put("deptId","testDept");
 		claims.put("deptNm","테스트부서");
+		claims.put("authorities",userDetails.getAuthorities());
 		return doGenerateToken(claims, userDetails.getUsername());
 	}
 
@@ -63,26 +67,52 @@ public class JwtTokenUtil implements Serializable {
 	//2. Sign the JWT using the HS512 algorithm and secret key.
 	//3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
 	//   compaction of the JWT to a URL-safe string 
-	private String doGenerateToken(Map<String, Object> claims, String subject) {
-		System.out.println("key : "+ secret);
+	private String doGenerateToken(Map<String, Object> claims, String userName) 
+	{
+		System.out.println("key : "+ secretKey);
 
 		String jwtToken = Jwts.builder()
-								.setClaims(claims)
-								.setSubject(subject)
+								.setHeaderParam("typ", "JWT")
+								.setAudience(userName)
+								.setIssuer("www.hanwhalife.com")
+//								.setId("")	// token id
+//								.setSubject(userName)
 								.setIssuedAt(new Date(System.currentTimeMillis()))	// 생성시간
 								.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))	// 만료시간
-//								.signWith(SignatureAlgorithm.HS256, secret)
-								.signWith(SignatureAlgorithm.HS512, secret)
+								.setClaims(claims)
+
+//								.signWith(SignatureAlgorithm.HS512, this.generateKey())
+								.signWith(SignatureAlgorithm.HS512, secretKey)	// SignatureAlgorithm.HS256
+								
 								.compact();
-		
+
 		System.out.println("jwtToken : " + jwtToken);
 
 		return jwtToken; 
 	}
 
+
+	private byte[] generateKey()
+	{
+		byte[] key = null;
+		try {
+			key = secretKey.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+//			if(log.isInfoEnabled()){
+				e.printStackTrace();
+//			}else{
+//				log.error("Making JWT Key Error ::: {}", e.getMessage());
+//			}
+		}
+		
+		return key;
+	}
+
+
 	//validate token
 	public Boolean validateToken(String token, UserDetails userDetails) {
 		final String username = getUsernameFromToken(token);
+		
 		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
 	}
 }

@@ -19,8 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter 
+{
 	@Autowired
 	private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
@@ -49,19 +49,31 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return super.authenticationManagerBean();
 	}
 
+	
+	// 예외 uri
+	private static final String[] EXCLUDE_PATHS = {
+            "/"
+			, "/hello"
+			, "/loginProc"
+			, "/resister"
+			, "/except/**"
+			, "/h2-console/**"
+    };
+
+
 	@Override
-	protected void configure(HttpSecurity httpSecurity) throws Exception {
+	protected void configure(HttpSecurity httpSecurity) throws Exception 
+	{
 		// We don't need CSRF for this example
 		httpSecurity.csrf().disable()
-				// dont authenticate this particular request
 				.authorizeRequests()
+				// dont authenticate this particular request
+				.antMatchers(EXCLUDE_PATHS).permitAll()
 				// all other requests need to be authenticated
-				.antMatchers("/hello").permitAll()
-				.antMatchers("/loginProc", "/resister").permitAll()
-				.anyRequest().authenticated()
-				.and().exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
-				// make sure we use stateless session; session won't be used to
-				// store user's state.
+				.anyRequest().authenticated().and()
+				
+				.exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+				// make sure we use stateless session; session won't be used to store user's state.
 				.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 		// Add a filter to validate the tokens with every request
