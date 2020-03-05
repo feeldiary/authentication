@@ -3,27 +3,61 @@ package com.hanwhalife.service;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.GrantAdmin;
 import org.springframework.security.core.userdetails.GrantUser;
 //import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.hanwhalife.config.JwtTokenUtil;
 import com.hanwhalife.entity.JwtUserInfo;
 import com.hanwhalife.entity.UserInfo;
 import com.hanwhalife.repository.UserRepository;
 
 
 @Service
-public class JwtUserDetailsService implements UserDetailsService 
+public class JwtUserService
 {
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	private AuthenticationManager authenticationManager;
+	
+	@Autowired
+	private JwtTokenUtil jwtTokenUtil;
+	
+	
+	public String loginProc() {
+		
+//		UserInfo userInfo = loadUserByUsername(jwtRequest.getUserId());
+//		
+//		String token = jwtTokenUtil.generateToken(userInfo);
+		
+		return "token";
+	}
+	
 
-	@Override
+/*	
+	public void authenticate(String username, String password) throws Exception 
+	{
+		try {
+			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+		} catch (DisabledException e) {
+			throw new Exception("USER_DISABLED", e);
+		} catch (BadCredentialsException e) {
+			throw new Exception("INVALID_CREDENTIALS", e);
+		}
+	}
+	*/
+	
+	
+	
+	
+//	@Override
 	public UserDetails loadUserByUsername(String userNm) throws UsernameNotFoundException 
 	{
 		ArrayList<GrantedAuthority> aList = new ArrayList<GrantedAuthority>();
@@ -37,13 +71,12 @@ public class JwtUserDetailsService implements UserDetailsService
 			throw new UsernameNotFoundException("User not found with username: " + userNm);
 		}
 	}
-	
+
+	@Deprecated
 	public UserInfo loadUserByUserId(String userId) throws UsernameNotFoundException 
 	{
 		
 //		List<UserInfo> userList = userRepository.findByUserId(userId);
-		
-		
 		if(true) {
 
 		} else {

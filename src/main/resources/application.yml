@@ -3,8 +3,9 @@ server:
   port: 80
 
 jwt:
-  secret: skTest
-
+  accessSecretKey: access1@!
+  refreshSecretKey: refresh!@1
+  tokenHeader: Authorization
 
 spring:
 #  h2:#    console:#      enabled: true

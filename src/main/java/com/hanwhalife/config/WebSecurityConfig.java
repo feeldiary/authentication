@@ -54,6 +54,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 	private static final String[] EXCLUDE_PATHS = {
             "/"
 			, "/hello"
+			, "/login"
 			, "/loginProc"
 			, "/resister"
 			, "/except/**"
@@ -68,15 +69,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 		httpSecurity.csrf().disable()
 				.authorizeRequests()
 				// dont authenticate this particular request
-				.antMatchers(EXCLUDE_PATHS).permitAll()
+				.antMatchers(EXCLUDE_PATHS).permitAll()		// 인증 예외
 				// all other requests need to be authenticated
-				.anyRequest().authenticated().and()
-				
-				.exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+				.anyRequest().authenticated()
+				.and()
+					.exceptionHandling()
+					.authenticationEntryPoint(jwtAuthenticationEntryPoint)	// 예외 처리
+				.and()
 				// make sure we use stateless session; session won't be used to store user's state.
-				.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+					.sessionManagement()
+					.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 		// Add a filter to validate the tokens with every request
+//		httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 		httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 }
